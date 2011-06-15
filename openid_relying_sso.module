@@ -53,8 +53,40 @@ function openid_relying_sso_menu_alter(&$items) {
  * when using the login/direct form.
  */
 function openid_relying_sso_form_alter(&$form, $form_state, $form_id) {
-  if ($form_id == 'user_login') {
-    $form['#redirect'] = '';
+  switch ($form_id) {
+    // Redirect user to front page after login, otherwise she will be pushed to
+    // OP when using the login/direct form.
+    case 'user_login':
+      $form['#redirect'] = '';
+      break;
+    // Don't allow the user to login using the login block. Direct her to OP
+    // instead.
+    case 'user_login_block':
+      // Show a modal message when user clicks on log in (there may be a wait).
+      $path = drupal_get_path('module', 'openid_relying_sso');
+      drupal_add_js(array('openid_relying_sso_wait_message' => t('Please wait...')), 'setting');
+      drupal_add_css("$path/openid_relying_sso.css");
+      drupal_add_js("$path/jquery.blockUI.js");
+      drupal_add_js("$path/openid_relying_sso.js");
+      // Remove all child elements.
+      foreach (element_children($form) as $key) {
+        unset($form[$key]);
+      }
+      $form['#action'] = url('user');
+      $form['#validate'] = array();
+      if ($provider = variable_get('openid_relying_sso_provider', array())) {
+        $form['message'] = array(
+          '#type' => 'item',
+          '#value' => t('Login using @provider_name as your OpenID provider.', array('@provider_name' => $provider['name'])),
+        );
+        $form['submit'] = array(
+          '#type' => 'submit',
+          '#value' => t('Login'),
+          '#submit' => array('openid_relying_sso_user_login_submit'),
+          '#attributes' => array('class' => 'login-submit'),
+        );
+      }
+      break;
   }
 }
 
