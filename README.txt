@@ -7,7 +7,7 @@ This module moves your standard log in page to login/direct/ and places at its
 previous location (user/) a redirect to the configured OpenID Provider.
 
 
-OpenID SSO
+OpenID SSO Relying Party
 ==========
 
 OpenID based Simple Sign-On among trusted sites.
@@ -32,7 +32,7 @@ Installation
 
 Install this module and dependencies.
 
-Go to admin/settings/openid-sso and enter a trusted OpenID Provider. The
+Go to admin/settings/openid-sso-relying and enter a trusted OpenID Provider. The
 Provider must be a Drupal site with the module OpenID Provider SSO enabled and
 configured.
 

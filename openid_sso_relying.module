@@ -8,9 +8,9 @@
 /**
  * Implementation of hook_menu().
  */
-function openid_relying_sso_menu() {
+function openid_sso_relying_menu() {
   $items = array();
-  // Move log in page to login/direct. See how openid_relying_sso_menu_alter() replaces
+  // Move log in page to login/direct. See how openid_sso_relying_menu_alter() replaces
   // log in.
   $items['login/direct'] = array(
     'title' => 'Direct log in',
@@ -20,15 +20,15 @@ function openid_relying_sso_menu() {
     'type' => MENU_CALLBACK,
   );
   $items['sso/init'] = array(
-    'page callback' => 'openid_relying_sso_init_page',
+    'page callback' => 'openid_sso_relying_init_page',
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
-  $items['admin/settings/openid-sso'] = array(
+  $items['admin/settings/openid-sso-relying'] = array(
     'title' => 'OpenID Simple Sign-On',
     'description' => 'Configure a designated OpenID provider for simplified OpenID-based sign-on.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('openid_relying_sso_settings'),
+    'page arguments' => array('openid_sso_relying_settings'),
     'access callback' => 'user_access',
     'access arguments' => array('administer site configuration'),
     'type' => MENU_NORMAL_ITEM,
@@ -39,11 +39,11 @@ function openid_relying_sso_menu() {
 /**
  * Implementation of hook_menu_alter().
  */
-function openid_relying_sso_menu_alter(&$items) {
-  $items['user/register']['page callback'] = 'openid_relying_sso_user_register_page';
-  $items['user/password']['page callback'] = 'openid_relying_sso_user_password_page';
-  $items['user']['page callback'] = 'openid_relying_sso_user_page';
-  $items['logout']['page callback'] = 'openid_relying_sso_logout_page';
+function openid_sso_relying_menu_alter(&$items) {
+  $items['user/register']['page callback'] = 'openid_sso_relying_user_register_page';
+  $items['user/password']['page callback'] = 'openid_sso_relying_user_password_page';
+  $items['user']['page callback'] = 'openid_sso_relying_user_page';
+  $items['logout']['page callback'] = 'openid_sso_relying_logout_page';
 }
 
 /**
@@ -52,7 +52,7 @@ function openid_relying_sso_menu_alter(&$items) {
  * Redirect user to front page after login, otherwise she will be pushed to OP
  * when using the login/direct form.
  */
-function openid_relying_sso_form_alter(&$form, $form_state, $form_id) {
+function openid_sso_relying_form_alter(&$form, $form_state, $form_id) {
   switch ($form_id) {
     // Redirect user to front page after login, otherwise she will be pushed to
     // OP when using the login/direct form.
@@ -63,18 +63,18 @@ function openid_relying_sso_form_alter(&$form, $form_state, $form_id) {
     // instead.
     case 'user_login_block':
       // Show a modal message when user clicks on log in (there may be a wait).
-      $path = drupal_get_path('module', 'openid_relying_sso');
-      drupal_add_js(array('openid_relying_sso_wait_message' => t('Please wait...')), 'setting');
-      drupal_add_css("$path/openid_relying_sso.css");
+      $path = drupal_get_path('module', 'openid_sso_relying');
+      drupal_add_js(array('openid_sso_relying_wait_message' => t('Please wait...')), 'setting');
+      drupal_add_css("$path/openid_sso_relying.css");
       drupal_add_js("$path/jquery.blockUI.js");
-      drupal_add_js("$path/openid_relying_sso.js");
+      drupal_add_js("$path/openid_sso_relying.js");
       // Remove all child elements.
       foreach (element_children($form) as $key) {
         unset($form[$key]);
       }
       $form['#action'] = url('user');
       $form['#validate'] = array();
-      if ($provider = variable_get('openid_relying_sso_provider', array())) {
+      if ($provider = variable_get('openid_sso_relying_provider', array())) {
         $form['message'] = array(
           '#type' => 'item',
           '#value' => t('Login using @provider_name as your OpenID provider.', array('@provider_name' => $provider['name'])),
@@ -82,7 +82,7 @@ function openid_relying_sso_form_alter(&$form, $form_state, $form_id) {
         $form['submit'] = array(
           '#type' => 'submit',
           '#value' => t('Login'),
-          '#submit' => array('openid_relying_sso_user_login_submit'),
+          '#submit' => array('openid_sso_relying_user_login_submit'),
           '#attributes' => array('class' => 'login-submit'),
         );
       }
@@ -98,66 +98,66 @@ function openid_relying_sso_form_alter(&$form, $form_state, $form_id) {
  * a user is NOT authenticated when initiating the OpenID authentication
  * request.
  */
-function openid_relying_sso_init_page() {
-  openid_relying_sso_logout();
+function openid_sso_relying_init_page() {
+  openid_sso_relying_logout();
   drupal_goto('user');
 }
 
 /**
  * Custom menu callback for user/page.
  */
-function openid_relying_sso_user_page() {
+function openid_sso_relying_user_page() {
   global $user;
   if ($user->uid) {
     return user_page();
   }
-  return openid_relying_sso_request();
+  return openid_sso_relying_request();
 }
 
 /**
  * Custom menu callback for user/register.
  */
-function openid_relying_sso_user_register_page() {
-  $provider = variable_get('openid_relying_sso_provider', array());
+function openid_sso_relying_user_register_page() {
+  $provider = variable_get('openid_sso_relying_provider', array());
   drupal_goto(url($provider['url'] . 'user/register', array('absolute' => TRUE)));
 }
 
 /**
  * Custom menu callback for user/password.
  */
-function openid_relying_sso_user_password_page() {
-  $provider = variable_get('openid_relying_sso_provider', array());
+function openid_sso_relying_user_password_page() {
+  $provider = variable_get('openid_sso_relying_provider', array());
   drupal_goto(url($provider['url'] . 'user/password', array('absolute' => TRUE)));
 }
 
 /**
  * Custom logout callback, redirects to hub.
  */
-function openid_relying_sso_logout_page() {
-  openid_relying_sso_logout();
-  $provider = variable_get('openid_relying_sso_provider', array());
+function openid_sso_relying_logout_page() {
+  openid_sso_relying_logout();
+  $provider = variable_get('openid_sso_relying_provider', array());
   drupal_goto($provider['url'] .'sso/logout/', 'realm='. urlencode(url(NULL, array('absolute' => TRUE))));
 }
 
 /**
  * Settings form.
  */
-function openid_relying_sso_settings() {
-  $provider = variable_get('openid_relying_sso_provider', array());
+function openid_sso_relying_settings() {
+  $provider = variable_get('openid_sso_relying_provider', array());
   $form = array();
-  $form['openid_relying_sso_provider'] = array(
+  $form['openid_sso_relying_provider'] = array(
     '#type' => 'fieldset',
     '#title' => t('OpenID Provider'),
     '#description' => t('A designated OpenID Provider with Simple Sign-On support. This must be another Drupal site with OpenID Provider module and OpenID Provider SSO module installed and configured.'),
     '#tree' => TRUE,
   );
-  $form['openid_relying_sso_provider']['name'] = array(
+  $form['openid_sso_relying_provider']['name'] = array(
     '#type' => 'textfield',
     '#title' => t('Name'),
     '#description' => t('The site name of the provider.'),
     '#default_value' => $provider['name'],
   );
-  $form['openid_relying_sso_provider']['url'] = array(
+  $form['openid_sso_relying_provider']['url'] = array(
     '#type' => 'textfield',
     '#title' => t('URL'),
     '#description' => t('The full URL of the provider, must contain a trailing slash.'),
@@ -169,8 +169,8 @@ function openid_relying_sso_settings() {
 /**
  * Request authentication.
  */
-function openid_relying_sso_request() {
-  $provider = variable_get('openid_relying_sso_provider', array());
+function openid_sso_relying_request() {
+  $provider = variable_get('openid_sso_relying_provider', array());
   $values = array(
     'openid_identifier' => $provider['url'],
     'openid.return_to' => url('openid/authenticate', array('absolute' => TRUE, 'query' => 'destination=')),
@@ -181,7 +181,7 @@ function openid_relying_sso_request() {
 /**
  * Pillaged from user_logout(). Does not contain drupal_goto().
  */
-function openid_relying_sso_logout() {
+function openid_sso_relying_logout() {
   global $user;
 
   watchdog('user', 'Session closed for %name.', array('%name' => $user->name));
