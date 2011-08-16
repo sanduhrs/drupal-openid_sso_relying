@@ -24,6 +24,11 @@ function openid_sso_relying_menu() {
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
+  $items['sso/logout-finalize'] = array(
+    'page callback' => 'openid_sso_relying_logout',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
   $items['admin/config/people/openid-sso-relying'] = array(
     'title' => 'OpenID Simple Sign-On',
     'description' => 'Configure a designated OpenID provider for simplified OpenID-based sign-on.',
@@ -40,10 +45,10 @@ function openid_sso_relying_menu() {
  * Implements hook_menu_alter().
  */
 function openid_sso_relying_menu_alter(&$items) {
+  $items['user']['page callback'] = 'openid_sso_relying_user_page';
   $items['user/register']['page callback'] = 'openid_sso_relying_user_register_page';
   $items['user/password']['page callback'] = 'openid_sso_relying_user_password_page';
-  $items['user']['page callback'] = 'openid_sso_relying_user_page';
-  $items['logout']['page callback'] = 'openid_sso_relying_logout_page';
+  $items['user/logout']['page callback'] = 'openid_sso_relying_logout_page';
 }
 
 /**
@@ -52,12 +57,12 @@ function openid_sso_relying_menu_alter(&$items) {
  * Redirect user to front page after login, otherwise she will be pushed to OP
  * when using the login/direct form.
  */
-function openid_sso_relying_form_alter(&$form, $form_state, $form_id) {
+function openid_sso_relying_form_alter(&$form, &$form_state, $form_id) {
   switch ($form_id) {
     // Redirect user to front page after login, otherwise she will be pushed to
     // OP when using the login/direct form.
     case 'user_login':
-      $form_state['#redirect'] = '';
+      $form_state['redirect'] = '';
       break;
       // Don't allow the user to login using the login block. Direct her to OP
       // instead.
@@ -69,29 +74,25 @@ function openid_sso_relying_form_alter(&$form, $form_state, $form_id) {
       drupal_add_js("$path/jquery.blockUI.js");
       drupal_add_js("$path/openid_sso_relying.js");
 
-dsm($form);
       // Remove all child elements.
       foreach (element_children($form) as $key) {
         unset($form[$key]);
       }
-
       $form['#action'] = url('user');
       $form['#validate'] = array();
 
-dsm(variable_get('openid_sso_relying_provider', array()));
       if ($provider = variable_get('openid_sso_relying_provider', array())) {
         $form['message'] = array(
-          '#type' => 'item',
-          '#value' => t('Login using @provider_name as your OpenID provider.', array('@provider_name' => $provider['name'])),
+          '#markup' => t('Login using @provider_name as your OpenID provider.', array('@provider_name' => $provider['name'])),
         );
         $form['#submit'] = array('openid_sso_relying_user_login_submit');
         $form['actions']['submit'] = array(
           '#type' => 'submit',
           '#value' => t('Login'),
+          '#submit' => array('openid_sso_relying_user_login_submit'),
           '#attributes' => array('class' => array('login-submit')),
         );
       }
-dsm($form);
       break;
   }
 }
@@ -140,9 +141,20 @@ function openid_sso_relying_user_password_page() {
  * Custom logout callback, redirects to hub.
  */
 function openid_sso_relying_logout_page() {
-  openid_sso_relying_logout();
-  $provider = variable_get('openid_sso_relying_provider', array());
-  drupal_goto($provider['url'] . 'sso/logout/', array('query' => array('realm' => '\' . urlencode(url(NULL, array(\'absolute\' => TRUE)))')));
+
+  global $user;
+  // Only redirect external users to provider page
+  if (db_select('authmap', 'a')->fields('a', array('uid'))->condition('uid', $user->uid)->execute()->fetchField()) {
+    openid_sso_relying_logout(); // This might be better to be executed after provider logout via sso/logout-finalize
+    $provider = variable_get('openid_sso_relying_provider', array());
+    drupal_goto($provider['url'] . 'sso/logout/', array('query' => array('realm' => url(NULL, array('absolute' => TRUE)),
+                                                                         'logout_redirect' => url('sso/logout-finalize', array('absolute' => TRUE)))));
+  }
+  else {
+    // User core logout process.
+    user_logout();
+  }
+
 }
 
 /**
@@ -161,15 +173,22 @@ function openid_sso_relying_settings($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Name'),
     '#description' => t('The site name of the provider.'),
-    '#default_value' => $provider['name'],
+    '#default_value' => isset($provider['name']) ? $provider['name'] : '',
   );
   $form['openid_sso_relying_provider']['url'] = array(
     '#type' => 'textfield',
     '#title' => t('URL'),
     '#description' => t('The full URL of the provider, must contain a trailing slash.'),
-    '#default_value' => $provider['url'],
+    '#default_value' => isset($provider['url']) ? $provider['url'] : '',
   );
   return system_settings_form($form);
+}
+
+/**
+ * Guarantee a trailing slash.
+ */
+function openid_sso_relying_settings_validate($form, &$form_state) {
+  $form_state['values']['openid_sso_relying_provider']['url'] = trim($form_state['values']['openid_sso_relying_provider']['url'], '/') . '/';
 }
 
 /**
@@ -177,9 +196,10 @@ function openid_sso_relying_settings($form, &$form_state) {
  */
 function openid_sso_relying_request() {
   $provider = variable_get('openid_sso_relying_provider', array());
+  $front = drupal_get_normal_path(variable_get('site_frontpage', 'node'));
   $values = array(
     'openid_identifier' => $provider['url'],
-    'openid.return_to' => url('openid/authenticate', array('absolute' => TRUE, 'query' => array('destination' => ''))),
+    'openid.return_to' => url('openid/authenticate', array('absolute' => TRUE, 'query' => array('destination' => $front))),
   );
   openid_begin($values['openid_identifier'], $values['openid.return_to'], $values);
 }
@@ -192,12 +212,8 @@ function openid_sso_relying_logout() {
 
   watchdog('user', 'Session closed for %name.', array('%name' => $user->name));
 
-  // Destroy the current session:
-  session_destroy();
-  // Only variables can be passed by reference workaround.
-  $null = NULL;
-  user_module_invoke('logout', $null, $user);
+  module_invoke_all('user_logout', $user);
 
-  // Load the anonymous user
-  $user = drupal_anonymous_user();
+  // Destroy the current session, and reset $user to the anonymous user.
+  session_destroy();
 }
