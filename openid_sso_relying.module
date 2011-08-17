@@ -25,7 +25,7 @@ function openid_sso_relying_menu() {
     'type' => MENU_CALLBACK,
   );
   $items['admin/settings/openid-sso-relying'] = array(
-    'title' => 'OpenID Simple Sign-On',
+    'title' => 'OpenID Single Sign-On',
     'description' => 'Configure a designated OpenID provider for simplified OpenID-based sign-on.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('openid_sso_relying_settings'),
@@ -148,7 +148,7 @@ function openid_sso_relying_settings() {
   $form['openid_sso_relying_provider'] = array(
     '#type' => 'fieldset',
     '#title' => t('OpenID Provider'),
-    '#description' => t('A designated OpenID Provider with Simple Sign-On support. This must be another Drupal site with OpenID Provider module and OpenID Provider SSO module installed and configured.'),
+    '#description' => t('A designated OpenID Provider with Single Sign-On support. This must be another Drupal site with OpenID Provider module and OpenID Provider SSO module installed and configured.'),
     '#tree' => TRUE,
   );
   $form['openid_sso_relying_provider']['name'] = array(

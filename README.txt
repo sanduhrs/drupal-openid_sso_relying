@@ -10,17 +10,13 @@ previous location (user/) a redirect to the configured OpenID Provider.
 OpenID SSO Relying Party
 ==========
 
-OpenID based Simple Sign-On among trusted sites.
+OpenID based Single Sign-On among trusted sites.
 
 Add a trusted Drupal OpenID provider to a Drupal site. Users enjoy a simplified
 sign on process between trusted sites.
 
 Assumes that the OpenID Provider in place is a Drupal site with OpenID Provider
 SSO module enabled.
-
-Note: this module does not provide true *Single* Sign-On functionality but a
-largely simplified sign on experience for webs of trusted sites. Hence the name
-*Simple* Sign-On.
 
 It is strongly recommended to install this module on a fresh Drupal site.
 Installing it on a site with existing users (other than user 1) will lead to
