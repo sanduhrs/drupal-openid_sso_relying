@@ -1,5 +1,5 @@
 name = "OpenID Relying SSO"
-description = "Force Simple Sign-On from a trusted OpenID Provider."
+description = "Force Single Sign-On from a trusted OpenID Provider."
 core = 7.x
 dependencies[] = openid
 package = "OpenID"
