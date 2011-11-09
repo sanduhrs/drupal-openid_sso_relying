@@ -136,7 +136,7 @@ function openid_sso_relying_user_password_page() {
 function openid_sso_relying_logout_page() {
   openid_sso_relying_logout();
   $provider = variable_get('openid_sso_relying_provider', array());
-  drupal_goto($provider['url'] .'sso/logout/', 'realm='. urlencode(url(NULL, array('absolute' => TRUE))));
+  drupal_goto($provider['url'] .'sso/logout/', 'realm='. urlencode(url(NULL, array('absolute' => TRUE, 'language' => ''))));
 }
 
 /**
@@ -173,7 +173,7 @@ function openid_sso_relying_request() {
   $provider = variable_get('openid_sso_relying_provider', array());
   $values = array(
     'openid_identifier' => $provider['url'],
-    'openid.return_to' => url('openid/authenticate', array('absolute' => TRUE, 'query' => 'destination=')),
+    'openid.return_to' => url('openid/authenticate', array('absolute' => TRUE, 'query' => 'destination=', 'language' => '')),
   );
   openid_begin($values['openid_identifier'], $values['openid.return_to'], $values);
 }
