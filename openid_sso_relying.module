@@ -77,7 +77,7 @@ function openid_sso_relying_form_alter(&$form, $form_state, $form_id) {
       if ($provider = variable_get('openid_sso_relying_provider', array())) {
         $form['message'] = array(
           '#type' => 'item',
-          '#value' => t('Login using @provider_name as your OpenID provider.', array('@provider_name' => $provider['name'])),
+          '#value' => '<p>' . t('Login using @provider_name as your OpenID provider.', array('@provider_name' => $provider['name'])) . '</p>',
         );
         $form['submit'] = array(
           '#type' => 'submit',
