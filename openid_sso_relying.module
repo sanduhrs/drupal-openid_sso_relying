@@ -196,7 +196,7 @@ function openid_sso_relying_settings_validate($form, &$form_state) {
  */
 function openid_sso_relying_request() {
   $provider = variable_get('openid_sso_relying_provider', array());
-  $front = drupal_get_normal_path(variable_get('site_frontpage', 'node'));
+  $front = url('<front>', array('absolute' => TRUE));
   $values = array(
     'openid_identifier' => $provider['url'],
     'openid.return_to' => url('openid/authenticate', array('absolute' => TRUE, 'query' => array('destination' => $front))),
@@ -209,11 +209,13 @@ function openid_sso_relying_request() {
  */
 function openid_sso_relying_logout() {
   global $user;
-
-  watchdog('user', 'Session closed for %name.', array('%name' => $user->name));
-
-  module_invoke_all('user_logout', $user);
-
-  // Destroy the current session, and reset $user to the anonymous user.
-  session_destroy();
+  if ($user->uid) {
+    watchdog('user', 'Session closed for %name.', array('%name' => $user->name));
+    module_invoke_all('user_logout', $user);
+    // Destroy the current session, and reset $user to the anonymous user.
+    session_destroy();
+  }
+  else {
+    drupal_goto('<front>');
+  }
 }
