@@ -201,7 +201,15 @@ function openid_sso_relying_request() {
     'openid_identifier' => $provider['url'],
     'openid.return_to' => url('openid/authenticate', array('absolute' => TRUE, 'query' => array('destination' => $front))),
   );
-  openid_begin($values['openid_identifier'], $values['openid.return_to'], $values);
+  if (!openid_begin($values['openid_identifier'], $values['openid.return_to'], $values)) {
+    // Flush the message cache.  The error returned by the openid module would only confuse the user.
+    drupal_get_messages();
+    // Provide our own error.
+    drupal_set_message(t('The system cannot process your login request.  Please contact the system administrator.'), 'error');
+    // Provide more detail for the admin in the logs.
+    watchdog('openid_sso_relying', 'Openid provider configuration issue.  Please check the provider URL.', WATCHDOG_ERROR);
+    drupal_goto();
+  }
 }
 
 /**
