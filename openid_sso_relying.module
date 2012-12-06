@@ -69,7 +69,7 @@ function openid_sso_relying_form_alter(&$form, &$form_state, $form_id) {
     case 'user_login_block':
       // Show a modal message when user clicks on log in (there may be a wait).
       $path = drupal_get_path('module', 'openid_sso_relying');
-      drupal_add_js(array('openid_sso_relying_wait_message' => t('Please wait...')), array('type' => 'setting', 'scope' => JS_DEFAULT));
+      drupal_add_js(array('openid_sso_relying' => array('openid_sso_relying_wait_message' => t('Please wait...'))), array('type' => 'setting'));
       drupal_add_css("$path/openid_sso_relying.css");
       drupal_add_js("$path/jquery.blockUI.js");
       drupal_add_js("$path/openid_sso_relying.js");
