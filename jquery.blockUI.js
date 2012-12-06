@@ -188,6 +188,7 @@ var pageBlockEls = [];
 
 function install(el, opts) {
 	var full = (el == window);
+	opts.message = '<h1>' + Drupal.settings.openid_sso_relying.openid_sso_relying_wait_message + '</h1>';
 	var msg = opts && opts.message !== undefined ? opts.message : undefined;
 	opts = $.extend({}, $.blockUI.defaults, opts || {});
 	opts.overlayCSS = $.extend({}, $.blockUI.defaults.overlayCSS, opts.overlayCSS || {});
