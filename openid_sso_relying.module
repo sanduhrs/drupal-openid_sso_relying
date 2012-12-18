@@ -229,7 +229,7 @@ function openid_sso_relying_request() {
 }
 
 /**
- * Pillaged from user_logout(). Does not contain drupal_goto().
+ * Pillaged from user_logout().
  */
 function openid_sso_relying_logout() {
   global $user;
