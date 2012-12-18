@@ -207,7 +207,7 @@ function openid_sso_relying_request() {
     // Provide our own error.
     drupal_set_message(t('The system cannot process your login request.  Please contact the system administrator.'), 'error');
     // Provide more detail for the admin in the logs.
-    watchdog('openid_sso_relying', 'Openid provider configuration issue.  Please check the provider URL.', WATCHDOG_ERROR);
+    watchdog('openid_sso_relying', 'Openid provider not reachable. Please check the url: %provider_url', array('%provider_url' => $provider['url']), WATCHDOG_ERROR);
     drupal_goto();
   }
 }
