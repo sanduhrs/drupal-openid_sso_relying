@@ -51,6 +51,22 @@ function openid_sso_relying_menu_alter(&$items) {
   $items['user/logout']['page callback'] = 'openid_sso_relying_logout_page';
 }
 
+
+/**
+ * Implements hook_menu_site_status_alter().
+ */
+function openid_sso_relying_menu_site_status_alter(&$menu_site_status, $path) {
+
+  // Make login/direct accessible in maintenance mode
+  if ($menu_site_status == MENU_SITE_OFFLINE) {
+    if (user_is_anonymous()) {
+      if ($path == 'login/direct') {
+          $menu_site_status = MENU_SITE_ONLINE;
+      }
+    }
+  }
+}
+
 /**
  * Implements hook_form_alter().
  *
