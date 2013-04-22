@@ -227,7 +227,7 @@ function openid_sso_relying_request() {
   $provider = variable_get('openid_sso_relying_provider', array());
 
   if (variable_get('openid_sso_relying_login_redirect', 0) == 1) {
-    $url = (isset($_GET['destionation'])) ? $_GET['destionation'] : $_SERVER['HTTP_REFERER'];
+    $url = (isset($_GET['destination'])) ? $_GET['destination'] : $_SERVER['HTTP_REFERER'];
   }
   else {
     $url = url('<front>', array('absolute' => FALSE));
