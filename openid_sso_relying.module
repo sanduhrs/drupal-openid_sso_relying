@@ -238,10 +238,27 @@ function openid_sso_relying_request() {
   $url = str_replace($base_url . $base_path,  '', $url);
   $url =  drupal_encode_path($url);
 
-  $values = array(
-    'openid_identifier' => $provider['url'],
-    'openid.return_to' => url('openid/authenticate', array('absolute' => TRUE, 'query' => array('destination' => $url))),
-  );
+  if (module_exists('securepages') && variable_get('securepages_enable', FALSE)) {
+    $secure = TRUE;
+    $url = array(
+      'path' => 'openid/authenticate',
+      'query' => array('destination' => $url),
+      'https' => $secure,
+      'base_url' => securepages_baseurl($secure),
+      'absolute' => TRUE,
+      'external' => FALSE,
+    );
+    $values = array(
+      'openid_identifier' => $provider['url'],
+      'openid.return_to' => url($url['path'], $url),
+    );
+  }
+  else {
+    $values = array(
+      'openid_identifier' => $provider['url'],
+      'openid.return_to' => url('openid/authenticate', array('absolute' => TRUE, 'query' => array('destination' => $url))),
+    );
+  }
 
   if (!openid_begin($values['openid_identifier'], $values['openid.return_to'], $values)) {
     // Flush the message cache.  The error returned by the openid module would only confuse the user.
