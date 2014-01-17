@@ -166,11 +166,13 @@ function openid_sso_relying_user_password_page() {
 function openid_sso_relying_logout_page() {
 
   global $user;
+  global $base_url;
+
   // Only redirect external users to provider page
   if (db_select('authmap', 'a')->fields('a', array('uid'))->condition('uid', $user->uid)->execute()->fetchField()) {
     openid_sso_relying_logout(); // This might be better to be executed after provider logout via sso/logout-finalize
     $provider = variable_get('openid_sso_relying_provider', array());
-    drupal_goto($provider['url'] . 'sso/logout/', array('query' => array('realm' => url(NULL, array('absolute' => TRUE)),
+    drupal_goto($provider['url'] . 'sso/logout/', array('query' => array('realm' => $base_url . '/',
                                                                          'logout_redirect' => url('sso/logout-finalize', array('absolute' => TRUE)))));
   }
   else {
