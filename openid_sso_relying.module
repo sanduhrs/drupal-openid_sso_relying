@@ -232,7 +232,7 @@ function openid_sso_relying_request() {
     $url = (isset($_GET['destination'])) ? $_GET['destination'] : $_SERVER['HTTP_REFERER'];
   }
   else {
-    $url = url('<front>', array('absolute' => FALSE));
+    $url = '');
   }
 
   // Make sure that only relative paths are available.
