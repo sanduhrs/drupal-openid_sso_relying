@@ -182,6 +182,7 @@ function openid_sso_relying_settings() {
  * Request authentication.
  */
 function openid_sso_relying_request() {
+  global $base_url;
   $provider = variable_get('openid_sso_relying_provider', array('url' => 'Not defined'));
 
   // Only redirect when coming from same website.
@@ -190,7 +191,6 @@ function openid_sso_relying_request() {
   }
 
   else {
-
     // Define url to come back to
     if (variable_get('openid_sso_relying_login_redirect', 0) == 1) {
       $url = (isset($_GET['destination'])) ? $_GET['destination'] : $_SERVER['HTTP_REFERER'];
@@ -203,8 +203,14 @@ function openid_sso_relying_request() {
   // Make sure that only relative paths are available.
   global $base_url, $base_path;
   $url = str_replace($base_url . $base_path,  '', $url);
-  $url =  drupal_urlencode($url);
 
+  // Strip out language prefix
+  if (module_exists('i18n')) {
+    global $language;
+    $url = preg_replace('|^(' . $language->prefix .'/)|',  '', $url);
+  }
+
+  $url =  drupal_urlencode($url);
   $values = array(
     'openid_identifier' => $provider['url'],
     'openid.return_to' => url('openid/authenticate', array('absolute' => TRUE, 'query' => array('destination' => $url, 'language' => ''))),
