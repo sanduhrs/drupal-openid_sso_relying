@@ -226,6 +226,8 @@ function openid_sso_relying_settings_validate($form, &$form_state) {
  * Request authentication.
  */
 function openid_sso_relying_request() {
+
+  global $base_url;
   $provider = variable_get('openid_sso_relying_provider', array());
 
   // Only redirect when coming from same website.
