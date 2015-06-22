@@ -164,9 +164,7 @@ function openid_sso_relying_user_password_page() {
  * Custom logout callback, redirects to hub.
  */
 function openid_sso_relying_logout_page() {
-
-  global $user;
-  global $base_url;
+  global $user, $base_url;
 
   // Only redirect external users to provider page
   if (db_select('authmap', 'a')->fields('a', array('uid'))->condition('uid', $user->uid)->execute()->fetchField()) {
@@ -226,8 +224,7 @@ function openid_sso_relying_settings_validate($form, &$form_state) {
  * Request authentication.
  */
 function openid_sso_relying_request() {
-
-  global $base_url;
+  global $base_url, $base_path;
   $provider = variable_get('openid_sso_relying_provider', array());
 
   // Only redirect when coming from same website.
@@ -247,7 +244,6 @@ function openid_sso_relying_request() {
   }
 
   // Make sure that only relative paths are available.
-  global $base_url, $base_path;
   $url = str_replace($base_url . $base_path,  '', $url);
   $url =  drupal_encode_path($url);
 
